@@ -28,9 +28,9 @@ int main() {
     }
 
     // Step 1: Send credentials
-    char credentials[BUFFER_SIZE] = "user2 secret456";
-    aes_encrypt(credentials, AES_BLOCK_SIZE);
-    send(sock, credentials, AES_BLOCK_SIZE, 0);
+    char credentials[BUFFER_SIZE] = "seif1 123pass";   
+    int cred_len = aes_encrypt(credentials, strlen(credentials));
+    send(sock, credentials, cred_len, 0);
 
     // Step 2: Wait for server confirmation
     int valread = read(sock, buffer, BUFFER_SIZE);
@@ -44,10 +44,10 @@ int main() {
         return 0;
     }
 
-    // Step 3: Send encrypted message
+    // Step 3: Send encrypted fixed message
     char message[BUFFER_SIZE] = "Hello from client";
-    aes_encrypt(message, AES_BLOCK_SIZE);
-    send(sock, message, AES_BLOCK_SIZE, 0);
+    int msg_len = aes_encrypt(message, strlen(message));
+    send(sock, message, msg_len, 0);
 
     // Step 4: Receive encrypted response
     memset(buffer, 0, BUFFER_SIZE);

@@ -9,7 +9,6 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
-// Check credentials against users.txt
 int check_credentials(const char *username, const char *password) {
     FILE *file = fopen("users.txt", "r");
     if (!file) return 0;
@@ -28,7 +27,6 @@ int check_credentials(const char *username, const char *password) {
     return 0;
 }
 
-// Thread function for each client
 void *handle_client(void *arg) {
     int new_socket = *(int*)arg;
     char buffer[BUFFER_SIZE] = {0};
@@ -36,33 +34,34 @@ void *handle_client(void *arg) {
     // Step 1: Receive credentials
     int valread = read(new_socket, buffer, BUFFER_SIZE);
     aes_decrypt(buffer, valread);
+    buffer[valread] = '\0';
 
     char username[BUFFER_SIZE], password[BUFFER_SIZE];
     sscanf(buffer, "%s %s", username, password);
 
     if (!check_credentials(username, password)) {
         char fail_msg[] = "AUTH_FAILED";
-        aes_encrypt(fail_msg, AES_BLOCK_SIZE);
-        send(new_socket, fail_msg, AES_BLOCK_SIZE, 0);
+        int fail_len = aes_encrypt(fail_msg, strlen(fail_msg));
+        send(new_socket, fail_msg, fail_len, 0);
         close(new_socket);
         pthread_exit(NULL);
     }
 
     // Step 2: Send success
     char success_msg[] = "AUTH_SUCCESS";
-    aes_encrypt(success_msg, AES_BLOCK_SIZE);
-    send(new_socket, success_msg, AES_BLOCK_SIZE, 0);
+    int succ_len = aes_encrypt(success_msg, strlen(success_msg));
+    send(new_socket, success_msg, succ_len, 0);
 
     // Step 3: Secure communication
     memset(buffer, 0, BUFFER_SIZE);
     valread = read(new_socket, buffer, BUFFER_SIZE);
     aes_decrypt(buffer, valread);
     buffer[valread] = '\0';
-    printf("Client: %s\n", buffer);
+    printf("[%s]: %s\n", username, buffer);
 
     char response[] = "Hello from server";
-    aes_encrypt(response, AES_BLOCK_SIZE);
-    send(new_socket, response, AES_BLOCK_SIZE, 0);
+    int resp_len = aes_encrypt(response, strlen(response));
+    send(new_socket, response, resp_len, 0);
 
     close(new_socket);
     pthread_exit(NULL);
