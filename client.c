@@ -28,7 +28,7 @@ int main() {
     }
 
     // Step 1: Send credentials
-    char credentials[BUFFER_SIZE] = "user1 pass123";
+    char credentials[BUFFER_SIZE] = "user2 secret456";
     aes_encrypt(credentials, AES_BLOCK_SIZE);
     send(sock, credentials, AES_BLOCK_SIZE, 0);
 
